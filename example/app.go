@@ -8,7 +8,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
-	"github.com/processout/applepay"
+	"github.com/rainforestpay/applepay"
 )
 
 var (

@@ -5,8 +5,8 @@ FROM golang:latest AS build
 RUN apt-get update && \
 	apt-get install -y libssl-dev
 
-COPY . /go/src/github.com/processout/applepay/example
-WORKDIR /go/src/github.com/processout/applepay/example
+COPY . /go/src/github.com/rainforestpay/applepay/example
+WORKDIR /go/src/github.com/rainforestpay/applepay/example
 RUN go build -ldflags '-w' -o /applepay .
 
 # Final image

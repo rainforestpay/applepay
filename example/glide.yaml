@@ -1,4 +1,4 @@
-package: github.com/processout/applepay/example
+package: github.com/rainforestpay/applepay/example
 import:
 - package: github.com/davecgh/go-spew
   version: v1.1.0
@@ -6,4 +6,4 @@ import:
   - spew
 - package: github.com/gin-gonic/gin
   version: v1.2
-- package: github.com/processout/applepay
+- package: github.com/rainforestpay/applepay
