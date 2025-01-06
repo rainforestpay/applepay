@@ -2,6 +2,8 @@
 
 [![GoDoc](https://godoc.org/github.com/rainforestpay/applepay?status.svg)](https://godoc.org/github.com/rainforestpay/applepay)
 
+**This is project is based on the now-unmaintained repository at https://github.com/processout/applepay**
+
 applepay is a Go package for processing Apple Pay transactions easily. It is aimed at merchants or PSPs that are looking to manage their own Apple Pay flow, as opposed to letting a third-party (such as Stripe) do it end-to-end. You will need a paid Apple Developer account to use this.
 
 Note: we have included the Apple root CA in this repository. For production use-cases, you should always download the certificates directly from [Apple](https://www.apple.com/certificateauthority/).
