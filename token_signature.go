@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -72,7 +72,7 @@ func (t *PKPaymentToken) verifySignature() error {
 
 // loadRootCertificate loads the root certificate from the disk
 func loadRootCertificate(path string) (*x509.Certificate, error) {
-	rootPEMBytes, err := ioutil.ReadFile(path)
+	rootPEMBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading the root certificate")
 	}

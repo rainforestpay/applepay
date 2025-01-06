@@ -9,8 +9,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/json"
-	"math/big"
-
 	"github.com/pkg/errors"
 )
 
@@ -50,8 +48,10 @@ func (m Merchant) DecryptToken(t *PKPaymentToken) (*Token, error) {
 	}
 
 	// Parse the token
-	parsedToken := &Token{}
-	json.Unmarshal(plaintextToken, parsedToken)
+	parsedToken := new(Token)
+	if err = json.Unmarshal(plaintextToken, parsedToken); err != nil {
+		return nil, errors.Wrap(err, "error unmarshalling token data")
+	}
 
 	return parsedToken, nil
 }
@@ -73,7 +73,10 @@ func (m Merchant) computeEncryptionKey(t *PKPaymentToken) ([]byte, error) {
 	}
 
 	// Generate the shared secret
-	sharedSecret := ecdheSharedSecret(pub, priv)
+	sharedSecret, err := ecdheSharedSecret(pub, priv)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not compute shared secret")
+	}
 
 	// Final key derivation from the shared secret and the hash of the merchant ID
 	key := deriveEncryptionKey(sharedSecret, m.identifierHash())
@@ -99,16 +102,30 @@ func (t PKPaymentToken) ephemeralPublicKey() (*ecdsa.PublicKey, error) {
 
 // ecdheSharedSecret computes the shared secret between an EC public key and a
 // EC private key, according to RFC5903 Section 9
-func ecdheSharedSecret(pub *ecdsa.PublicKey, priv *ecdsa.PrivateKey) *big.Int {
-	z, _ := priv.Curve.ScalarMult(pub.X, pub.Y, priv.D.Bytes())
-	return z
+func ecdheSharedSecret(pubEcdsa *ecdsa.PublicKey, privEcdsa *ecdsa.PrivateKey) ([]byte, error) {
+	pub, err := pubEcdsa.ECDH()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not convert public key to ECDH")
+	}
+
+	priv, err := privEcdsa.ECDH()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not convert private key to ECDH")
+	}
+
+	sharedSecret, err := priv.ECDH(pub)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not perform ECDH")
+	}
+
+	return sharedSecret, nil
 }
 
 // deriveEncryptionKey derives the symmetric encryption key of the token payload
 // from a ECDHE shared secret and a hash of the merchant ID
 // It uses the function described in NIST SP 800-56A, section 5.8.1
 // See https://developer.apple.com/library/content/documentation/PassKit/Reference/PaymentTokenJSON/PaymentTokenJSON.html#//apple_ref/doc/uid/TP40014929-CH8-SW2
-func deriveEncryptionKey(sharedSecret *big.Int, merchantIDHash []byte) []byte {
+func deriveEncryptionKey(sharedSecret []byte, merchantIDHash []byte) []byte {
 	// Only one round of the function is required
 	counter := []byte{0, 0, 0, 1}
 	// Apple-defined KDF parameters
@@ -119,7 +136,7 @@ func deriveEncryptionKey(sharedSecret *big.Int, merchantIDHash []byte) []byte {
 	// SHA256( counter || sharedSecret || algorithm || partyU || partyV )
 	h := sha256.New()
 	h.Write(counter)
-	h.Write(sharedSecret.Bytes())
+	h.Write(sharedSecret)
 	h.Write(kdfAlgorithm)
 	h.Write(kdfPartyU)
 	h.Write(kdfPartyV)

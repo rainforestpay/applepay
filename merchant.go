@@ -49,7 +49,7 @@ func New(merchantID string, options ...func(*Merchant) error) (*Merchant, error)
 }
 
 // identifierHash hashes m.config.MerchantIdentifier with SHA-256
-func (m *Merchant) identifierHash() []byte {
+func (m Merchant) identifierHash() []byte {
 	h := sha256.New()
 	h.Write([]byte(m.identifier))
 	return h.Sum(nil)
